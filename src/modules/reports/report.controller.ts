@@ -2,7 +2,7 @@ import type {
   Request,
   Response,
 } from "express";
-import { CreateReportRequestBody, UpdateReportStatusRequestBody } from "./report.validation";
+import { CreateReportRequestBody, ListReportsQuery, UpdateReportStatusRequestBody } from "./report.validation";
 import { createReport, deleteReport, getAllReports, getReportAnalytics, getReportById, updateReportStatus } from "./report.service";
 import { CreateReportInput } from "./report.types";
 
@@ -35,16 +35,22 @@ export const getAllReportsController = async (
   _req: Request,
   res: Response,
 ): Promise<void> => {
-  const reports = await getAllReports();
+  const query =
+    res.locals
+      .validatedQuery as ListReportsQuery;
+
+  const result = await getAllReports(query);
 
   res.status(200).json({
     success: true,
     message:
       "Reports retrieved successfully.",
-    data: reports,
+
+    data: result.reports,
 
     meta: {
-      count: reports.length,
+      pagination: result.pagination,
+      filters: result.appliedFilters,
     },
   });
 };

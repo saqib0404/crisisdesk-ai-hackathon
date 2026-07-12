@@ -9,7 +9,12 @@ import {
     updateReportStatusController
 } from "./report.controller";
 import { validateRequest } from "../../middlewares/validate.middleware";
-import { createReportValidationSchema, reportIdValidationSchema, updateReportStatusValidationSchema } from "./report.validation";
+import {
+    createReportValidationSchema,
+    listReportsValidationSchema,
+    reportIdValidationSchema,
+    updateReportStatusValidationSchema
+} from "./report.validation";
 
 
 
@@ -22,41 +27,44 @@ const reportRouter = Router();
  * as a report ID.
  */
 reportRouter.get(
-  "/stats/summary",
-  asyncHandler(getReportAnalyticsController),
+    "/stats/summary",
+    asyncHandler(getReportAnalyticsController),
 );
 
 reportRouter.post(
-  "/",
-  validateRequest(
-    createReportValidationSchema,
-  ),
-  asyncHandler(createReportController),
+    "/",
+    validateRequest(
+        createReportValidationSchema,
+    ),
+    asyncHandler(createReportController),
 );
 
 reportRouter.get(
-  "/",
-  asyncHandler(getAllReportsController),
+    "/",
+    validateRequest(
+        listReportsValidationSchema,
+    ),
+    asyncHandler(getAllReportsController),
 );
 
 reportRouter.get(
-  "/:id",
-  validateRequest(reportIdValidationSchema),
-  asyncHandler(getReportByIdController),
+    "/:id",
+    validateRequest(reportIdValidationSchema),
+    asyncHandler(getReportByIdController),
 );
 
 reportRouter.patch(
-  "/:id/status",
-  validateRequest(
-    updateReportStatusValidationSchema,
-  ),
-  asyncHandler(updateReportStatusController),
+    "/:id/status",
+    validateRequest(
+        updateReportStatusValidationSchema,
+    ),
+    asyncHandler(updateReportStatusController),
 );
 
 reportRouter.delete(
-  "/:id",
-  validateRequest(reportIdValidationSchema),
-  asyncHandler(deleteReportController),
+    "/:id",
+    validateRequest(reportIdValidationSchema),
+    asyncHandler(deleteReportController),
 );
 
 export { reportRouter };

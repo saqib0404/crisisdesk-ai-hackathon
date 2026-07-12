@@ -61,11 +61,6 @@ export const validateRequest = (
       req.params = validatedData.params;
     }
 
-    /*
-     * Express 5 exposes req.query through a getter,
-     * so keep validated query values in res.locals
-     * when query validation is added later.
-     */
     _res.locals.validatedQuery =
       validatedData.query;
 

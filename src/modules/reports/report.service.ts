@@ -1,7 +1,9 @@
 import { prisma } from "../../config/prisma";
 import { AppError } from "../../errors/AppError";
+import { Prisma } from "../../generated/prisma/client";
 import { REPORT_CATEGORIES, REPORT_URGENCIES } from "./report.constants";
 import { CreateReportInput, ReportStatusValue } from "./report.types";
+import { ListReportsQuery } from "./report.validation";
 
 
 /**
@@ -67,25 +69,232 @@ export const createReport = async (
 /**
  * GET /api/reports
  */
-export const getAllReports = async () => {
-    const reports = await prisma.report.findMany({
-        orderBy: {
-            createdAt: "desc",
-        },
 
-        include: {
-            matchedReport: {
-                select: {
-                    id: true,
-                    location: true,
-                    category: true,
-                    urgency: true,
+const getStartOfUtcDay = (
+    dateValue: string,
+): Date => {
+    return new Date(
+        `${dateValue}T00:00:00.000Z`,
+    );
+};
+
+const getEndOfUtcDay = (
+    dateValue: string,
+): Date => {
+    return new Date(
+        `${dateValue}T23:59:59.999Z`,
+    );
+};
+
+export const getAllReports = async (
+    query: ListReportsQuery,
+) => {
+    const {
+        category,
+        urgency,
+        status,
+        language,
+        search,
+        startDate,
+        endDate,
+        page,
+        limit,
+        sortBy,
+        sortOrder,
+    } = query;
+
+    const where: Prisma.ReportWhereInput = {};
+
+    /*
+     * Exact enum filters
+     */
+    if (category) {
+        where.category = category;
+    }
+
+    if (urgency) {
+        where.urgency = urgency;
+    }
+
+    if (status) {
+        where.status = status;
+    }
+
+    if (language) {
+        where.language = language;
+    }
+
+    /*
+     * Free-text search
+     */
+    if (search) {
+        where.OR = [
+            {
+                name: {
+                    contains: search,
+                    mode: "insensitive",
                 },
             },
-        },
-    });
 
-    return reports;
+            {
+                contact: {
+                    contains: search,
+                    mode: "insensitive",
+                },
+            },
+
+            {
+                location: {
+                    contains: search,
+                    mode: "insensitive",
+                },
+            },
+
+            {
+                normalizedLocation: {
+                    contains: search,
+                    mode: "insensitive",
+                },
+            },
+
+            {
+                description: {
+                    contains: search,
+                    mode: "insensitive",
+                },
+            },
+
+            {
+                normalizedDescription: {
+                    contains: search,
+                    mode: "insensitive",
+                },
+            },
+
+            {
+                summary: {
+                    contains: search,
+                    mode: "insensitive",
+                },
+            },
+
+            {
+                suggestedAction: {
+                    contains: search,
+                    mode: "insensitive",
+                },
+            },
+        ];
+    }
+
+    /*
+     * Date-range filter
+     */
+    const createdAtFilter: Prisma.DateTimeFilter =
+        {};
+
+    if (startDate) {
+        createdAtFilter.gte =
+            getStartOfUtcDay(startDate);
+    }
+
+    if (endDate) {
+        createdAtFilter.lte =
+            getEndOfUtcDay(endDate);
+    }
+
+    if (startDate || endDate) {
+        where.createdAt = createdAtFilter;
+    }
+
+    /*
+     * Offset pagination
+     */
+    const skip = (page - 1) * limit;
+
+    /*
+     * Dynamic sorting.
+     *
+     * The ID becomes a secondary sort field so
+     * results remain stable when two reports have
+     * the same date or confidence value.
+     */
+    const primaryOrder = {
+        [sortBy]: sortOrder,
+    } as Prisma.ReportOrderByWithRelationInput;
+
+    const orderBy:
+        Prisma.ReportOrderByWithRelationInput[] = [
+            primaryOrder,
+            {
+                id: "asc",
+            },
+        ];
+
+    /*
+     * Retrieve the selected page and total count
+     * together.
+     */
+    const [reports, totalReports] =
+        await prisma.$transaction([
+            prisma.report.findMany({
+                where,
+
+                skip,
+
+                take: limit,
+
+                orderBy,
+
+                include: {
+                    matchedReport: {
+                        select: {
+                            id: true,
+                            location: true,
+                            category: true,
+                            urgency: true,
+                            status: true,
+                        },
+                    },
+                },
+            }),
+
+            prisma.report.count({
+                where,
+            }),
+        ]);
+
+    const totalPages =
+        totalReports === 0
+            ? 0
+            : Math.ceil(totalReports / limit);
+
+    return {
+        reports,
+
+        pagination: {
+            page,
+            limit,
+            totalReports,
+            totalPages,
+            returnedReports: reports.length,
+            hasNextPage:
+                totalPages > 0 && page < totalPages,
+            hasPreviousPage: page > 1,
+        },
+
+        appliedFilters: {
+            category: category ?? null,
+            urgency: urgency ?? null,
+            status: status ?? null,
+            language: language ?? null,
+            search: search ?? null,
+            startDate: startDate ?? null,
+            endDate: endDate ?? null,
+            sortBy,
+            sortOrder,
+        },
+    };
 };
 
 /**

@@ -12,5 +12,8 @@ export interface CreateReportInput {
   contact?: string;
   location: string;
   description: string;
-  language: ReportLanguageValue;
+  language:
+  | "bn"
+  | "en"
+  | "unknown";
 }

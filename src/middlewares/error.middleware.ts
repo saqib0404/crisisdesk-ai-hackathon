@@ -1,8 +1,8 @@
 import type {
   ErrorRequestHandler,
 } from "express";
-import { AppError } from "../errors/AppError";
 
+import { AppError } from "../errors/AppError";
 
 export const errorHandler: ErrorRequestHandler = (
   error,
@@ -10,6 +10,32 @@ export const errorHandler: ErrorRequestHandler = (
   res,
   _next,
 ) => {
+  /*
+   * Handles malformed JSON such as:
+   *
+   * {
+   *   "name": "Rahim",
+   *   "location":
+   * }
+   */
+  if (
+    error instanceof SyntaxError &&
+    "body" in error
+  ) {
+    res.status(400).json({
+      success: false,
+
+      error: {
+        code: "INVALID_JSON",
+        message:
+          "The request body contains invalid JSON.",
+        details: null,
+      },
+    });
+
+    return;
+  }
+
   if (error instanceof AppError) {
     res.status(error.statusCode).json({
       success: false,
@@ -24,7 +50,10 @@ export const errorHandler: ErrorRequestHandler = (
     return;
   }
 
-  console.error("Unexpected application error:", error);
+  console.error(
+    "Unexpected application error:",
+    error,
+  );
 
   res.status(500).json({
     success: false,

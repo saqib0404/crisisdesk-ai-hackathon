@@ -1,0 +1,17 @@
+model Admin {
+  id String @id @default(cuid())
+
+  name         String  @db.VarChar(120)
+  email        String  @unique @db.VarChar(255)
+  passwordHash String  @db.Text
+  role         AdminRole @default(admin)
+  isActive     Boolean @default(true)
+
+  statusChanges ReportStatusHistory[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([role])
+  @@index([isActive])
+}

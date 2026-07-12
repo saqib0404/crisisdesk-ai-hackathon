@@ -1,0 +1,21 @@
+model ReportStatusHistory {
+    id String @id @default(cuid())
+
+    reportId String
+    report   Report @relation(fields: [reportId],references: [id],onDelete: Cascade)
+
+    previousStatus ReportStatus?
+    newStatus      ReportStatus
+
+    changedById String?
+    changedBy   Admin?  @relation(fields: [changedById], references: [id], onDelete: SetNull)
+
+    note String? @db.Text
+
+    changedAt DateTime @default(now())
+
+    @@index([reportId])
+    @@index([changedById])
+    @@index([newStatus])
+    @@index([reportId, changedAt])
+}

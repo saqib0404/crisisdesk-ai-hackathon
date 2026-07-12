@@ -1,0 +1,44 @@
+enum ReportLanguage {
+  bn
+  en
+  unknown
+}
+
+enum ReportCategory {
+  medical
+  fire
+  accident
+  crime
+  flood
+  utility
+  public_service
+  infrastructure
+  other
+}
+
+enum ReportUrgency {
+  low
+  medium
+  high
+  critical
+}
+
+enum ReportStatus {
+  pending
+  in_review
+  assigned
+  resolved
+  rejected
+}
+
+enum AiStatus {
+  pending
+  success
+  failed
+  fallback
+}
+
+enum AdminRole {
+  admin
+  super_admin
+}

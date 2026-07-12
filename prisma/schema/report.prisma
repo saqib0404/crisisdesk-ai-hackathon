@@ -1,0 +1,63 @@
+model Report {
+  id String @id @default(cuid())
+
+  // Reporter information
+  name    String? @db.VarChar(120)
+  contact String? @db.VarChar(150)
+
+  // Original location information
+  location           String  @db.Text
+  normalizedLocation String? @db.Text
+  latitude           Decimal? @db.Decimal(9, 6)
+  longitude          Decimal? @db.Decimal(9, 6)
+
+  // Original citizen report
+  description           String  @db.Text
+  normalizedDescription String? @db.Text
+  translatedDescription String? @db.Text
+  language              ReportLanguage @default(unknown)
+
+  // AI-generated classification
+  category        ReportCategory @default(other)
+  urgency         ReportUrgency  @default(medium)
+  summary         String? @db.Text
+  suggestedAction String? @db.Text
+  confidence      Float?
+
+  // Duplicate detection
+  possibleDuplicate Boolean @default(false)
+  duplicateScore    Float?
+  matchedReportId   String?
+
+  matchedReport Report? @relation("ReportDuplicateMatch",fields: [matchedReportId],references: [id],onDelete: SetNull)
+
+  duplicateReports Report[] @relation("ReportDuplicateMatch")
+
+  // Management information
+  status               ReportStatus @default(pending)
+  requiresManualReview Boolean      @default(false)
+
+  // AI processing information
+  aiStatus   AiStatus @default(pending)
+  aiProvider String?  @db.VarChar(80)
+  aiModel    String?  @db.VarChar(120)
+  aiMetadata Json?    @db.JsonB
+
+  // Relations
+  statusHistory ReportStatusHistory[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+  @@index([urgency])
+  @@index([status])
+  @@index([language])
+  @@index([createdAt])
+  @@index([matchedReportId])
+  @@index([possibleDuplicate])
+  @@index([requiresManualReview])
+
+  @@index([category, urgency])
+  @@index([status, createdAt])
+}

@@ -2,6 +2,7 @@ import { prisma } from "../../config/prisma";
 import { AppError } from "../../errors/AppError";
 import { Prisma } from "../../generated/prisma/client";
 import { classifyEmergencyReport } from "../../services/ai.service";
+import { detectPossibleDuplicate } from "../../services/duplicate.service";
 import { REPORT_CATEGORIES, REPORT_URGENCIES } from "./report.constants";
 import { CreateReportInput, ReportStatusValue } from "./report.types";
 import { ListReportsQuery } from "./report.validation";
@@ -24,60 +25,180 @@ const normalizeText = (value: string): string => {
 export const createReport = async (
     input: CreateReportInput,
 ) => {
-    /**
-     * Call Gemini before storing the report.
+    /*
+     * Step 1: Clean the citizen-provided values.
+     */
+    const location = input.location.trim();
+    const description = input.description.trim();
+
+    /*
+     * Step 2: Classify the report using Gemini.
      *
-     * The AI service always returns either:
-     * - a successful classification; or
-     * - a safe fallback classification.
+     * The AI service returns either:
+     * - a successful AI result; or
+     * - a safe fallback result.
      */
     const aiResult =
         await classifyEmergencyReport({
-            location: input.location.trim(),
-
-            description:
-                input.description.trim(),
-
+            location,
+            description,
             language: input.language,
         });
 
-    const manualReviewThreshold = Number(
+    /*
+     * Step 3: Compare the report with recent
+     * reports to detect a possible duplicate.
+     */
+    const duplicateResult =
+        await detectPossibleDuplicate({
+            location,
+            description,
+            summary: aiResult.summary,
+            category: aiResult.category,
+        });
+
+    /*
+     * Step 4: Decide whether manual review
+     * should be required.
+     */
+    const configuredThreshold = Number(
         process.env
-            .AI_MANUAL_REVIEW_THRESHOLD || 0.6,
+            .AI_MANUAL_REVIEW_THRESHOLD ??
+        0.6,
     );
+
+    const manualReviewThreshold =
+        Number.isFinite(configuredThreshold)
+            ? configuredThreshold
+            : 0.6;
 
     const requiresManualReview =
         aiResult.aiStatus !== "success" ||
         aiResult.confidence <
         manualReviewThreshold;
 
+    /*
+     * Step 5: Convert the duplicate-score
+     * breakdown into a Prisma-compatible
+     * JSON object.
+     *
+     * This explicitly fixes the
+     * SimilarityBreakdown TypeScript error.
+     */
+    const duplicateBreakdown:
+        Prisma.InputJsonObject | null =
+        duplicateResult.breakdown
+            ? {
+                descriptionSimilarity:
+                    duplicateResult.breakdown
+                        .descriptionSimilarity,
+
+                locationSimilarity:
+                    duplicateResult.breakdown
+                        .locationSimilarity,
+
+                categorySimilarity:
+                    duplicateResult.breakdown
+                        .categorySimilarity,
+
+                timeSimilarity:
+                    duplicateResult.breakdown
+                        .timeSimilarity,
+            }
+            : null;
+
+    /*
+     * Step 6: Create the duplicate-detection
+     * metadata as valid Prisma JSON.
+     */
+    const duplicateDetectionMetadata:
+        Prisma.InputJsonObject = {
+        threshold:
+            duplicateResult.threshold,
+
+        evaluatedCandidates:
+            duplicateResult
+                .evaluatedCandidates,
+
+        breakdown:
+            duplicateBreakdown,
+    };
+
+    /*
+     * Step 7: Create the complete AI metadata
+     * object as valid Prisma JSON.
+     */
+    const aiMetadata:
+        Prisma.InputJsonObject = {
+        usedFallback:
+            aiResult.metadata.usedFallback,
+
+        reason:
+            aiResult.metadata.reason,
+
+        duplicateDetection:
+            duplicateDetectionMetadata,
+    };
+
+    /*
+     * Step 8: Create an appropriate initial
+     * status-history note.
+     */
+    let statusHistoryNote =
+        "Report submitted and automatically classified.";
+
+    if (
+        duplicateResult.possibleDuplicate &&
+        duplicateResult.matchedReportId
+    ) {
+        statusHistoryNote =
+            `Report submitted and identified as a possible duplicate of ${duplicateResult.matchedReportId}.`;
+    } else if (
+        aiResult.aiStatus !== "success"
+    ) {
+        statusHistoryNote =
+            "Report submitted using the AI fallback and requires manual review.";
+    } else if (requiresManualReview) {
+        statusHistoryNote =
+            "Report submitted and automatically classified with low confidence. Manual review is required.";
+    }
+
+    /*
+     * Step 9: Store the complete report.
+     */
     const report =
         await prisma.report.create({
             data: {
+                /*
+                 * Reporter information
+                 */
                 name:
                     input.name?.trim() || null,
 
                 contact:
                     input.contact?.trim() || null,
 
-                location:
-                    input.location.trim(),
+                /*
+                 * Location information
+                 */
+                location,
 
                 normalizedLocation:
-                    normalizeText(input.location),
+                    normalizeText(location),
 
-                description:
-                    input.description.trim(),
+                /*
+                 * Citizen report
+                 */
+                description,
 
                 normalizedDescription:
-                    normalizeText(
-                        input.description,
-                    ),
+                    normalizeText(description),
 
-                language: input.language,
+                language:
+                    input.language,
 
-                /**
-                 * Gemini classification
+                /*
+                 * AI classification
                  */
                 category:
                     aiResult.category,
@@ -94,17 +215,30 @@ export const createReport = async (
                 confidence:
                     aiResult.confidence,
 
-                /**
-                 * Duplicate detection will be
-                 * implemented in the next step.
+                /*
+                 * Duplicate detection
                  */
-                possibleDuplicate: false,
-                duplicateScore: null,
-                matchedReportId: null,
+                possibleDuplicate:
+                    duplicateResult
+                        .possibleDuplicate,
 
-                status: "pending",
+                duplicateScore:
+                    duplicateResult
+                        .duplicateScore,
 
-                /**
+                matchedReportId:
+                    duplicateResult
+                        .matchedReportId,
+
+                /*
+                 * Report management
+                 */
+                status:
+                    "pending",
+
+                requiresManualReview,
+
+                /*
                  * AI processing information
                  */
                 aiStatus:
@@ -116,29 +250,49 @@ export const createReport = async (
                 aiModel:
                     aiResult.aiModel,
 
-                aiMetadata:
-                    aiResult.metadata,
+                aiMetadata,
 
-                requiresManualReview,
-
+                /*
+                 * Initial status-history record
+                 */
                 statusHistory: {
                     create: {
                         previousStatus: null,
                         newStatus: "pending",
-
-                        note:
-                            aiResult.aiStatus ===
-                                "success"
-                                ? "Report submitted and automatically classified."
-                                : "Report submitted using AI fallback and requires manual review.",
+                        note: statusHistoryNote,
                     },
+                },
+            },
+
+            /*
+             * Return basic matched-report details
+             * when this report is a duplicate.
+             */
+            include: {
+                matchedReport: {
+                    select: {
+                        id: true,
+                        location: true,
+                        description: true,
+                        category: true,
+                        urgency: true,
+                        status: true,
+                        createdAt: true,
+                    },
+                },
+
+                statusHistory: {
+                    orderBy: {
+                        changedAt: "desc",
+                    },
+
+                    take: 1,
                 },
             },
         });
 
     return report;
 };
-
 /**
  * GET /api/reports
  */

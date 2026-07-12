@@ -5,6 +5,7 @@ import type {
 import { CreateReportRequestBody, ListReportsQuery, UpdateReportStatusRequestBody } from "./report.validation";
 import { createReport, deleteReport, getAllReports, getReportAnalytics, getReportById, updateReportStatus } from "./report.service";
 import { CreateReportInput } from "./report.types";
+import { AuthenticatedAdmin } from "../auth/auth.types";
 
 
 
@@ -85,12 +86,18 @@ export const updateReportStatusController =
     const { id } = req.params;
 
     const { status } =
-      req.body as UpdateReportStatusRequestBody;
+      req.body as
+        UpdateReportStatusRequestBody;
+
+    const admin =
+      res.locals
+        .admin as AuthenticatedAdmin;
 
     const updatedReport =
       await updateReportStatus(
         id as string,
         status,
+        admin.id,
       );
 
     res.status(200).json({

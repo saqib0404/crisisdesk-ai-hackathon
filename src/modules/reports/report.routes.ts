@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { authenticateAdmin } from "../../middlewares/authenticateAdmin.middleware";
 import { asyncHandler } from "../../utils/asynchandler";
 import {
     createReportController,
@@ -8,6 +9,7 @@ import {
     getReportByIdController,
     updateReportStatusController
 } from "./report.controller";
+import { reportSubmissionRateLimiter } from "../../middlewares/rateLimiters.middleware";
 import { validateRequest } from "../../middlewares/validate.middleware";
 import {
     createReportValidationSchema,
@@ -15,56 +17,94 @@ import {
     reportIdValidationSchema,
     updateReportStatusValidationSchema
 } from "./report.validation";
-
+import { authorizeRoles } from "../../middlewares/authorizeRoles.middleware";
 
 
 const reportRouter = Router();
 
-/**
- * This route must appear before /:id.
- *
- * Otherwise Express may treat "stats"
- * as a report ID.
+/*
+ * Protected analytics route.
+ * Keep it above /:id.
  */
 reportRouter.get(
     "/stats/summary",
-    asyncHandler(getReportAnalyticsController),
+    authenticateAdmin,
+    asyncHandler(
+        getReportAnalyticsController,
+    ),
 );
 
+/*
+ * Public citizen submission route.
+ */
 reportRouter.post(
     "/",
+    reportSubmissionRateLimiter,
     validateRequest(
         createReportValidationSchema,
     ),
-    asyncHandler(createReportController),
+    asyncHandler(
+        createReportController,
+    ),
 );
 
+/*
+ * Protected administrative listing.
+ */
 reportRouter.get(
     "/",
+    authenticateAdmin,
     validateRequest(
         listReportsValidationSchema,
     ),
-    asyncHandler(getAllReportsController),
+    asyncHandler(
+        getAllReportsController,
+    ),
 );
 
+/*
+ * Protected report details.
+ */
 reportRouter.get(
     "/:id",
-    validateRequest(reportIdValidationSchema),
-    asyncHandler(getReportByIdController),
+    authenticateAdmin,
+    validateRequest(
+        reportIdValidationSchema,
+    ),
+    asyncHandler(
+        getReportByIdController,
+    ),
 );
 
+/*
+ * Protected status management.
+ */
 reportRouter.patch(
     "/:id/status",
+    authenticateAdmin,
     validateRequest(
         updateReportStatusValidationSchema,
     ),
-    asyncHandler(updateReportStatusController),
+    asyncHandler(
+        updateReportStatusController,
+    ),
 );
 
+/*
+ * Only a super admin may delete reports.
+ */
 reportRouter.delete(
     "/:id",
-    validateRequest(reportIdValidationSchema),
-    asyncHandler(deleteReportController),
+    authenticateAdmin,
+    authorizeRoles(
+        "super_admin",
+    ),
+    validateRequest(
+        reportIdValidationSchema,
+    ),
+    asyncHandler(
+        deleteReportController,
+    ),
 );
 
 export { reportRouter };

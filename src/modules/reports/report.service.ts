@@ -582,55 +582,80 @@ export const getReportById = async (
  * PATCH /api/reports/:id/status
  */
 export const updateReportStatus = async (
-    reportId: string,
-    newStatus: ReportStatusValue,
+  reportId: string,
+  newStatus: ReportStatusValue,
+  changedById: string,
 ) => {
-    const updatedReport = await prisma.$transaction(
-        async (transaction) => {
-            const existingReport =
-                await transaction.report.findUnique({
-                    where: {
-                        id: reportId,
-                    },
+  const updatedReport =
+    await prisma.$transaction(
+      async (transaction) => {
+        const existingReport =
+          await transaction.report
+            .findUnique({
+              where: {
+                id: reportId,
+              },
 
-                    select: {
-                        id: true,
-                        status: true,
-                    },
-                });
-
-            if (!existingReport) {
-                throw new AppError(
-                    404,
-                    "REPORT_NOT_FOUND",
-                    "Report not found.",
-                );
-            }
-
-            const report = await transaction.report.update({
-                where: {
-                    id: reportId,
-                },
-
-                data: {
-                    status: newStatus,
-                },
+              select: {
+                id: true,
+                status: true,
+              },
             });
 
-            await transaction.reportStatusHistory.create({
-                data: {
-                    reportId,
-                    previousStatus: existingReport.status,
-                    newStatus,
-                    note: `Status changed from ${existingReport.status} to ${newStatus}.`,
-                },
+        if (!existingReport) {
+          throw new AppError(
+            404,
+            "REPORT_NOT_FOUND",
+            "Report not found.",
+          );
+        }
+
+        if (
+          existingReport.status ===
+          newStatus
+        ) {
+          throw new AppError(
+            409,
+            "STATUS_UNCHANGED",
+            `The report is already marked as ${newStatus}.`,
+          );
+        }
+
+        const report =
+          await transaction.report
+            .update({
+              where: {
+                id: reportId,
+              },
+
+              data: {
+                status: newStatus,
+              },
             });
 
-            return report;
-        },
+        await transaction
+          .reportStatusHistory
+          .create({
+            data: {
+              reportId,
+
+              previousStatus:
+                existingReport.status,
+
+              newStatus,
+
+              changedById,
+
+              note:
+                `Status changed from ${existingReport.status} to ${newStatus}.`,
+            },
+          });
+
+        return report;
+      },
     );
 
-    return updatedReport;
+  return updatedReport;
 };
 
 /**

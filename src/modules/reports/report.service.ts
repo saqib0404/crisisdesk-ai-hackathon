@@ -1,6 +1,7 @@
 import { prisma } from "../../config/prisma";
 import { AppError } from "../../errors/AppError";
 import { Prisma } from "../../generated/prisma/client";
+import { classifyEmergencyReport } from "../../services/ai.service";
 import { REPORT_CATEGORIES, REPORT_URGENCIES } from "./report.constants";
 import { CreateReportInput, ReportStatusValue } from "./report.types";
 import { ListReportsQuery } from "./report.validation";
@@ -23,45 +24,117 @@ const normalizeText = (value: string): string => {
 export const createReport = async (
     input: CreateReportInput,
 ) => {
-    const report = await prisma.report.create({
-        data: {
-            name: input.name?.trim() || null,
-            contact: input.contact?.trim() || null,
-
+    /**
+     * Call Gemini before storing the report.
+     *
+     * The AI service always returns either:
+     * - a successful classification; or
+     * - a safe fallback classification.
+     */
+    const aiResult =
+        await classifyEmergencyReport({
             location: input.location.trim(),
-            normalizedLocation: normalizeText(input.location),
 
-            description: input.description.trim(),
-            normalizedDescription: normalizeText(
-                input.description,
-            ),
+            description:
+                input.description.trim(),
 
             language: input.language,
+        });
 
-            // Temporary values until AI is integrated
-            category: "other",
-            urgency: "medium",
-            summary: "Temporary summary",
-            suggestedAction: "Manual review required.",
-            confidence: 0,
+    const manualReviewThreshold = Number(
+        process.env
+            .AI_MANUAL_REVIEW_THRESHOLD || 0.6,
+    );
 
-            possibleDuplicate: false,
-            duplicateScore: null,
-            matchedReportId: null,
+    const requiresManualReview =
+        aiResult.aiStatus !== "success" ||
+        aiResult.confidence <
+        manualReviewThreshold;
 
-            status: "pending",
-            aiStatus: "pending",
-            requiresManualReview: true,
+    const report =
+        await prisma.report.create({
+            data: {
+                name:
+                    input.name?.trim() || null,
 
-            statusHistory: {
-                create: {
-                    previousStatus: null,
-                    newStatus: "pending",
-                    note: "Report submitted.",
+                contact:
+                    input.contact?.trim() || null,
+
+                location:
+                    input.location.trim(),
+
+                normalizedLocation:
+                    normalizeText(input.location),
+
+                description:
+                    input.description.trim(),
+
+                normalizedDescription:
+                    normalizeText(
+                        input.description,
+                    ),
+
+                language: input.language,
+
+                /**
+                 * Gemini classification
+                 */
+                category:
+                    aiResult.category,
+
+                urgency:
+                    aiResult.urgency,
+
+                summary:
+                    aiResult.summary,
+
+                suggestedAction:
+                    aiResult.suggestedAction,
+
+                confidence:
+                    aiResult.confidence,
+
+                /**
+                 * Duplicate detection will be
+                 * implemented in the next step.
+                 */
+                possibleDuplicate: false,
+                duplicateScore: null,
+                matchedReportId: null,
+
+                status: "pending",
+
+                /**
+                 * AI processing information
+                 */
+                aiStatus:
+                    aiResult.aiStatus,
+
+                aiProvider:
+                    aiResult.aiProvider,
+
+                aiModel:
+                    aiResult.aiModel,
+
+                aiMetadata:
+                    aiResult.metadata,
+
+                requiresManualReview,
+
+                statusHistory: {
+                    create: {
+                        previousStatus: null,
+                        newStatus: "pending",
+
+                        note:
+                            aiResult.aiStatus ===
+                                "success"
+                                ? "Report submitted and automatically classified."
+                                : "Report submitted using AI fallback and requires manual review.",
+                    },
                 },
             },
-        },
-    });
+        });
 
     return report;
 };

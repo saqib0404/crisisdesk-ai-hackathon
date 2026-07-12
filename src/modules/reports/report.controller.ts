@@ -18,7 +18,7 @@ export const createReportController = async (
   const input =
     req.body as CreateReportRequestBody;
 
-  const report = await createReport(input as CreateReportInput);
+  const report = await createReport(input as any);
 
   res.status(201).json({
     success: true,

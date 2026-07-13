@@ -1,10 +1,10 @@
 import type {
     RequestHandler,
 } from "express";
-import { AppError } from "../errors/AppError";
-import { verifyAccessToken } from "../modules/auth/auth.service";
-import { prisma } from "../config/prisma";
-import { AdminRoleValue, AuthenticatedAdmin } from "../modules/auth/auth.types";
+import { AppError } from "../errors/AppError.js";
+import { verifyAccessToken } from "../modules/auth/auth.service.js";
+import { prisma } from "../config/prisma.js";
+import { AdminRoleValue, AuthenticatedAdmin } from "../modules/auth/auth.types.js";
 
 
 export const authenticateAdmin:

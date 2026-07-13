@@ -1,7 +1,7 @@
 import type {
     CorsOptions,
 } from "cors";
-import { AppError } from "../errors/AppError";
+import { AppError } from "../errors/AppError.js";
 
 
 const isProduction =

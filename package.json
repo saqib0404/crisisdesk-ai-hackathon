@@ -5,7 +5,10 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "npx tsx watch src/server.ts"
+    "dev": "npx tsx watch src/server.ts",
+    "build": "prisma generate && tsc",
+    "start": "node dist/server.js",
+    "start:prod": "prisma migrate deploy && node dist/scripts/bootstrapAdmin.js && node dist/server.js"
   },
   "keywords": [],
   "author": "",
@@ -23,6 +26,7 @@
     "helmet": "^8.3.0",
     "jsonwebtoken": "^9.0.3",
     "pg": "^8.22.0",
+    "prisma": "^7.8.0",
     "swagger-ui-express": "^5.0.1",
     "zod": "^4.4.3"
   },

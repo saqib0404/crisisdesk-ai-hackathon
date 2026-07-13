@@ -1,4 +1,4 @@
-import { REPORT_LANGUAGES, REPORT_STATUSES } from "./report.constants";
+import { REPORT_LANGUAGES, REPORT_STATUSES } from "./report.constants.js";
 
 
 export type ReportLanguageValue =

@@ -7,7 +7,7 @@ import type {
 
 import type { ZodType } from "zod";
 
-import { AppError } from "../errors/AppError";
+import { AppError } from "../errors/AppError.js";
 
 export const validateRequest = (
   schema: ZodType,

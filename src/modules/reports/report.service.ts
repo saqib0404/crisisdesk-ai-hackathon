@@ -1,11 +1,11 @@
-import { prisma } from "../../config/prisma";
-import { AppError } from "../../errors/AppError";
-import { Prisma } from "../../generated/prisma/client";
-import { classifyEmergencyReport } from "../../services/ai.service";
-import { detectPossibleDuplicate } from "../../services/duplicate.service";
-import { REPORT_CATEGORIES, REPORT_URGENCIES } from "./report.constants";
-import { CreateReportInput, ReportStatusValue } from "./report.types";
-import { ListReportsQuery } from "./report.validation";
+import { prisma } from "../../config/prisma.js";
+import { AppError } from "../../errors/AppError.js";
+import { Prisma } from "../../generated/prisma/client.js";
+import { classifyEmergencyReport } from "../../services/ai.service.js";
+import { detectPossibleDuplicate } from "../../services/duplicate.service.js";
+import { REPORT_CATEGORIES, REPORT_URGENCIES } from "./report.constants.js";
+import { CreateReportInput, ReportStatusValue } from "./report.types.js";
+import { ListReportsQuery } from "./report.validation.js";
 
 
 /**
@@ -588,7 +588,7 @@ export const updateReportStatus = async (
 ) => {
   const updatedReport =
     await prisma.$transaction(
-      async (transaction) => {
+      async (transaction:any) => {
         const existingReport =
           await transaction.report
             .findUnique({

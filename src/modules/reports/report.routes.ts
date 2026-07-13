@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { authenticateAdmin } from "../../middlewares/authenticateAdmin.middleware";
-import { asyncHandler } from "../../utils/asynchandler";
+import { authenticateAdmin } from "../../middlewares/authenticateAdmin.middleware.js";
+import { asyncHandler } from "../../utils/asynchandler.js";
 import {
     createReportController,
     deleteReportController,
@@ -8,16 +8,16 @@ import {
     getReportAnalyticsController,
     getReportByIdController,
     updateReportStatusController
-} from "./report.controller";
-import { reportSubmissionRateLimiter } from "../../middlewares/rateLimiters.middleware";
-import { validateRequest } from "../../middlewares/validate.middleware";
+} from "./report.controller.js";
+import { reportSubmissionRateLimiter } from "../../middlewares/rateLimiters.middleware.js";
+import { validateRequest } from "../../middlewares/validate.middleware.js";
 import {
     createReportValidationSchema,
     listReportsValidationSchema,
     reportIdValidationSchema,
     updateReportStatusValidationSchema
-} from "./report.validation";
-import { authorizeRoles } from "../../middlewares/authorizeRoles.middleware";
+} from "./report.validation.js";
+import { authorizeRoles } from "../../middlewares/authorizeRoles.middleware.js";
 
 
 const reportRouter = Router();

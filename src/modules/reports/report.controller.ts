@@ -2,10 +2,10 @@ import type {
   Request,
   Response,
 } from "express";
-import { CreateReportRequestBody, ListReportsQuery, UpdateReportStatusRequestBody } from "./report.validation";
-import { createReport, deleteReport, getAllReports, getReportAnalytics, getReportById, updateReportStatus } from "./report.service";
-import { CreateReportInput } from "./report.types";
-import { AuthenticatedAdmin } from "../auth/auth.types";
+import { CreateReportRequestBody, ListReportsQuery, UpdateReportStatusRequestBody } from "./report.validation.js";
+import { createReport, deleteReport, getAllReports, getReportAnalytics, getReportById, updateReportStatus } from "./report.service.js";
+import { CreateReportInput } from "./report.types.js";
+import { AuthenticatedAdmin } from "../auth/auth.types.js";
 
 
 

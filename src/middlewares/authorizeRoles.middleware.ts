@@ -1,8 +1,8 @@
 import type {
     RequestHandler,
 } from "express";
-import { AdminRoleValue, AuthenticatedAdmin } from "../modules/auth/auth.types";
-import { AppError } from "../errors/AppError";
+import { AdminRoleValue, AuthenticatedAdmin } from "../modules/auth/auth.types.js";
+import { AppError } from "../errors/AppError.js";
 
 
 export const authorizeRoles = (

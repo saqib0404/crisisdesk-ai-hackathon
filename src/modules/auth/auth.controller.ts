@@ -2,9 +2,9 @@ import type {
     Request,
     Response,
 } from "express";
-import { LoginAdminRequestBody } from "./auth.validation";
-import { loginAdmin } from "./auth.service";
-import { AuthenticatedAdmin } from "./auth.types";
+import { LoginAdminRequestBody } from "./auth.validation.js";
+import { loginAdmin } from "./auth.service.js";
+import { AuthenticatedAdmin } from "./auth.types.js";
 
 
 export const loginAdminController =

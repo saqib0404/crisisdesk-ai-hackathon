@@ -2,7 +2,7 @@ import type {
   ErrorRequestHandler,
 } from "express";
 
-import { AppError } from "../errors/AppError";
+import { AppError } from "../errors/AppError.js";
 
 export const errorHandler: ErrorRequestHandler = (
   error,

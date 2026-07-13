@@ -7,10 +7,10 @@
 
     // Environment Settings
     // See also https://aka.ms/tsconfig/module
-    "module": "ESNext",
+    "module": "NodeNext",
     "target": "ES2023",
     "esModuleInterop": true,
-    "types": [],
+    "types": ["node"],
     // For nodejs:
     // "lib": ["esnext"],
     // "types": ["node"],
@@ -32,7 +32,7 @@
     // "noUnusedParameters": true,
     // "noFallthroughCasesInSwitch": true,
     // "noPropertyAccessFromIndexSignature": true,
-    "moduleResolution": "bundler",
+    "moduleResolution": "NodeNext",
 
     // Recommended Options
     "strict": true,

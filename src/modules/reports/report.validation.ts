@@ -1,5 +1,5 @@
 import * as z from "zod";
-import { REPORT_CATEGORIES, REPORT_LANGUAGES, REPORT_STATUSES, REPORT_URGENCIES } from "./report.constants";
+import { REPORT_CATEGORIES, REPORT_LANGUAGES, REPORT_STATUSES, REPORT_URGENCIES } from "./report.constants.js";
 
 
 /*

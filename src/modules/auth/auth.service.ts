@@ -2,9 +2,9 @@ import bcrypt from "bcryptjs";
 import jwt, {
     type JwtPayload,
 } from "jsonwebtoken";
-import { AdminRoleValue, VerifiedAccessToken } from "./auth.types";
-import { prisma } from "../../config/prisma";
-import { AppError } from "../../errors/AppError";
+import { AdminRoleValue, VerifiedAccessToken } from "./auth.types.js";
+import { prisma } from "../../config/prisma.js";
+import { AppError } from "../../errors/AppError.js";
 
 
 const JWT_SECRET =

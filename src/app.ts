@@ -1,12 +1,12 @@
 import cors from "cors";
 import express from "express";
 import helmet from "helmet";
-import { corsOptions } from "./config/cors";
-import { apiRateLimiter } from "./middlewares/rateLimiters.middleware";
-import { authRouter } from "./modules/auth/auth.routes";
-import { reportRouter } from "./modules/reports/report.routes";
-import { notFoundHandler } from "./middlewares/notFoundHandler.middleware";
-import { errorHandler } from "./middlewares/error.middleware";
+import { corsOptions } from "./config/cors.js";
+import { apiRateLimiter } from "./middlewares/rateLimiters.middleware.js";
+import { authRouter } from "./modules/auth/auth.routes.js";
+import { reportRouter } from "./modules/reports/report.routes.js";
+import { notFoundHandler } from "./middlewares/notFoundHandler.middleware.js";
+import { errorHandler } from "./middlewares/error.middleware.js";
 
 const app = express();
 

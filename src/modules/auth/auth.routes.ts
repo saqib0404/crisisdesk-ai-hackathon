@@ -1,10 +1,10 @@
 import { Router } from "express";
-import { loginRateLimiter } from "../../middlewares/rateLimiters.middleware";
-import { validateRequest } from "../../middlewares/validate.middleware";
-import { loginAdminValidationSchema } from "./auth.validation";
-import { asyncHandler } from "../../utils/asynchandler";
-import { getCurrentAdminController, loginAdminController } from "./auth.controller";
-import { authenticateAdmin } from "../../middlewares/authenticateAdmin.middleware";
+import { loginRateLimiter } from "../../middlewares/rateLimiters.middleware.js";
+import { validateRequest } from "../../middlewares/validate.middleware.js";
+import { loginAdminValidationSchema } from "./auth.validation.js";
+import { asyncHandler } from "../../utils/asynchandler.js";
+import { getCurrentAdminController, loginAdminController } from "./auth.controller.js";
+import { authenticateAdmin } from "../../middlewares/authenticateAdmin.middleware.js";
 
 
 

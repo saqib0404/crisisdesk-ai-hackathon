@@ -1,0 +1,405 @@
+{
+  "info": {
+    "_postman_id": "336f2d61-3e8a-4677-8858-d4515369a2c7",
+    "name": "crisisdesk-ai-hackathon",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "25215335"
+  },
+  "item": [
+    {
+      "name": "Current Admin",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkbWluQGNyaXNpc2Rlc2subG9jYWwiLCJyb2xlIjoic3VwZXJfYWRtaW4iLCJpYXQiOjE3ODM4OTA4NDIsImV4cCI6MTc4Mzg5ODA0MiwiYXVkIjoiY3Jpc2lzZGVzay1hZG1pbiIsImlzcyI6ImNyaXNpc2Rlc2stYWkiLCJzdWIiOiJjbXJpYTdxc3gwMDAwbThjMHNmbDl1NTY2In0.eMXbjW83IMHhVIeVaVPFLFDJ6HNkv_8QWPea9-F1grI",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseURL}}/api/auth/me",
+          "host": [
+            "{{baseURL}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "me"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Login",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Login returns status 200\", function () {\r",
+              "  pm.response.to.have.status(200);\r",
+              "});\r",
+              "\r",
+              "const responseBody = pm.response.json();\r",
+              "\r",
+              "pm.test(\"Login response contains an access token\", function () {\r",
+              "  pm.expect(responseBody).to.have.nested.property(\r",
+              "    \"data.accessToken\"\r",
+              "  );\r",
+              "\r",
+              "  pm.expect(responseBody.data.accessToken)\r",
+              "    .to.be.a(\"string\")\r",
+              "    .and.not.be.empty;\r",
+              "});\r",
+              "\r",
+              "/*\r",
+              " * Save the JWT as a collection variable.\r",
+              " * It will be available to the other requests\r",
+              " * in this collection as {{adminToken}}.\r",
+              " */\r",
+              "if (\r",
+              "  pm.response.code === 200 &&\r",
+              "  responseBody?.data?.accessToken\r",
+              ") {\r",
+              "  pm.collectionVariables.set(\r",
+              "    \"adminToken\",\r",
+              "    responseBody.data.accessToken\r",
+              "  );\r",
+              "\r",
+              "  console.log(\r",
+              "    \"Administrator token saved successfully.\"\r",
+              "  );\r",
+              "}"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"email\": \"admin@crisisdesk.local\",\r\n  \"password\": \"password1234\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseURL}}/api/auth/login",
+          "host": [
+            "{{baseURL}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delete Report",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseURL}}/api/reports/cmri2blcw0002s8c0f318vpjq",
+          "host": [
+            "{{baseURL}}"
+          ],
+          "path": [
+            "api",
+            "reports",
+            "cmri2blcw0002s8c0f318vpjq"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Report By ID",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkbWluQGNyaXNpc2Rlc2subG9jYWwiLCJyb2xlIjoic3VwZXJfYWRtaW4iLCJpYXQiOjE3ODM4OTA4NDIsImV4cCI6MTc4Mzg5ODA0MiwiYXVkIjoiY3Jpc2lzZGVzay1hZG1pbiIsImlzcyI6ImNyaXNpc2Rlc2stYWkiLCJzdWIiOiJjbXJpYTdxc3gwMDAwbThjMHNmbDl1NTY2In0.eMXbjW83IMHhVIeVaVPFLFDJ6HNkv_8QWPea9-F1grI",
+            "type": "text",
+            "disabled": true
+          }
+        ],
+        "url": {
+          "raw": "{{baseURL}}/api/reports/cmri2blcw0002s8c0f318vpjq",
+          "host": [
+            "{{baseURL}}"
+          ],
+          "path": [
+            "api",
+            "reports",
+            "cmri2blcw0002s8c0f318vpjq"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Analytics",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseURL}}/api/reports/stats/summary",
+          "host": [
+            "{{baseURL}}"
+          ],
+          "path": [
+            "api",
+            "reports",
+            "stats",
+            "summary"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update Report Status",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkbWluQGNyaXNpc2Rlc2subG9jYWwiLCJyb2xlIjoic3VwZXJfYWRtaW4iLCJpYXQiOjE3ODM4OTA4NDIsImV4cCI6MTc4Mzg5ODA0MiwiYXVkIjoiY3Jpc2lzZGVzay1hZG1pbiIsImlzcyI6ImNyaXNpc2Rlc2stYWkiLCJzdWIiOiJjbXJpYTdxc3gwMDAwbThjMHNmbDl1NTY2In0.eMXbjW83IMHhVIeVaVPFLFDJ6HNkv_8QWPea9-F1grI",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"status\": \"pending\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseURL}}/api/reports/cmri2blcw0002s8c0f318vpjq/status",
+          "host": [
+            "{{baseURL}}"
+          ],
+          "path": [
+            "api",
+            "reports",
+            "cmri2blcw0002s8c0f318vpjq",
+            "status"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get All Reports",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"page\": 1,\r\n  \"limit\": 20,\r\n  \"sortBy\": \"createdAt\",\r\n  \"sortOrder\": \"desc\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseURL}}/api/reports",
+          "host": [
+            "{{baseURL}}"
+          ],
+          "path": [
+            "api",
+            "reports"
+          ],
+          "query": [
+            {
+              "key": "category",
+              "value": "medical",
+              "disabled": true
+            },
+            {
+              "key": "urgency",
+              "value": "critical",
+              "disabled": true
+            },
+            {
+              "key": "status",
+              "value": "assigned",
+              "disabled": true
+            },
+            {
+              "key": "language",
+              "value": "bn",
+              "disabled": true
+            },
+            {
+              "key": "search",
+              "value": "medic",
+              "disabled": true
+            },
+            {
+              "key": "limit",
+              "value": "2",
+              "disabled": true
+            },
+            {
+              "key": "page",
+              "value": "3",
+              "disabled": true
+            },
+            {
+              "key": "sortBy",
+              "value": "createdAt",
+              "disabled": true
+            },
+            {
+              "key": "sortOrder",
+              "value": "asc",
+              "disabled": true
+            },
+            {
+              "key": "startDate",
+              "value": "2026-07-01",
+              "disabled": true
+            },
+            {
+              "key": "endDate",
+              "value": "2026-07-31",
+              "disabled": true
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Post Report",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"location\": \" Dhaka\",\r\n  \"description\": \"the roads of bonany are submerged with water. walking in the roads is impossible.\",\r\n  \"language\": \"en\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseURL}}/api/reports",
+          "host": [
+            "{{baseURL}}"
+          ],
+          "path": [
+            "api",
+            "reports"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "health-check",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseURL}}/api/health",
+          "host": [
+            "{{baseURL}}"
+          ],
+          "path": [
+            "api",
+            "health"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{adminToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "adminToken",
+      "value": ""
+    },
+    {
+      "key": "baseURL",
+      "value": ""
+    }
+  ]
+}
